@@ -1,0 +1,58 @@
+-- Create Departments Table
+CREATE TABLE departments (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) UNIQUE NOT NULL
+);
+
+-- Insert Departments
+INSERT INTO departments (name) VALUES
+('CSG'), ('CABE'), ('CEDAS'), ('CCIS'), ('CHS'), ('COE');
+
+-- Create Staff Table
+CREATE TABLE staff (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    department_id INT UNIQUE,
+    FOREIGN KEY (department_id) REFERENCES departments(id) ON DELETE SET NULL
+);
+
+-- Create Users Table
+CREATE TABLE users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    department_id INT,
+    FOREIGN KEY (department_id) REFERENCES departments(id) ON DELETE SET NULL
+);
+
+-- Create Admin Table
+CREATE TABLE admin (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL
+);
+
+-- Insert Admin Account
+INSERT INTO admin (email, password) 
+VALUES ('admin@admin.com', '$2a$10$hashed_password_here');  -- Replace with hashed password
+
+-- Insert Staff Accounts
+INSERT INTO staff (name, email, password, department_id) VALUES
+('CSG Staff', 'CSG@staff.com', '$2a$10$hashed_password_here', 1),
+('CABE Staff', 'CABE@staff.com', '$2a$10$hashed_password_here', 2),
+('CEDAS Staff', 'CEDAS@staff.com', '$2a$10$hashed_password_here', 3),
+('CCIS Staff', 'CCIS@staff.com', '$2a$10$hashed_password_here', 4),
+('CHS Staff', 'CHS@staff.com', '$2a$10$hashed_password_here', 5),
+('COE Staff', 'COE@staff.com', '$2a$10$hashed_password_here', 6);
+
+-- Insert Example User Accounts
+INSERT INTO users (name, email, password, department_id) VALUES
+('CSG User', 'CSG@user.com', '$2a$10$hashed_password_here', 1),
+('CABE User', 'CABE@user.com', '$2a$10$hashed_password_here', 2),
+('CEDAS User', 'CEDAS@user.com', '$2a$10$hashed_password_here', 3),
+('CCIS User', 'CCIS@user.com', '$2a$10$hashed_password_here', 4),
+('CHS User', 'CHS@user.com', '$2a$10$hashed_password_here', 5),
+('COE User', 'COE@user.com', '$2a$10$hashed_password_here', 6);
