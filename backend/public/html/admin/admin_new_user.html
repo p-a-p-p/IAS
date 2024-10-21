@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin - Add New User</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-gray-100 min-h-screen flex">
+    <!-- Sidebar -->
+    <!-- Admin Sidebar -->
+    <div class="w-64 bg-blue-900 text-white flex flex-col justify-between">
+      <div class="p-6">
+        <h2 class="text-xl font-bold">Admin Dashboard</h2>
+        <ul class="mt-8 space-y-4">
+          <li>
+            <a href="admin_dashboard.html" class="hover:text-blue-300"
+              >Dashboard</a
+            >
+          </li>
+          <li>
+            <a href="admin_event.html" class="hover:text-blue-300"
+              >Manage Events</a
+            >
+          </li>
+          <li>
+            <a href="admin_new_staff.html" class="hover:text-blue-300"
+              >Add New Staff</a
+            >
+          </li>
+          <li>
+            <a href="admin_new_user.html" class="hover:text-blue-300"
+              >Add New User</a
+            >
+          </li>
+        </ul>
+      </div>
+
+      <div class="p-6">
+        <button
+          class="w-full bg-red-500 text-white py-2 rounded hover:bg-red-700"
+        >
+          Logout
+        </button>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="flex-1 p-10">
+      <div class="bg-white shadow-md rounded p-6">
+        <h1 class="text-2xl font-semibold">Add New User</h1>
+
+        <form action="/admin/add-user" method="POST" class="mt-6 space-y-4">
+          <div>
+            <label class="block text-gray-700">Full Name</label>
+            <input
+              type="text"
+              name="name"
+              class="w-full border p-2 rounded"
+              placeholder="Enter full name"
+              required
+            />
+          </div>
+
+          <div>
+            <label class="block text-gray-700">Email</label>
+            <input
+              type="email"
+              name="email"
+              class="w-full border p-2 rounded"
+              placeholder="Enter email"
+              required
+            />
+          </div>
+
+          <div>
+            <label class="block text-gray-700">Password</label>
+            <input
+              type="password"
+              name="password"
+              class="w-full border p-2 rounded"
+              placeholder="Enter password"
+              required
+            />
+          </div>
+
+          <div>
+            <label class="block text-gray-700">Department</label>
+            <select
+              name="department_id"
+              class="w-full border p-2 rounded"
+              required
+            >
+              <option value="1">CSG</option>
+              <option value="2">CABE</option>
+              <option value="3">CEDAS</option>
+              <option value="4">CCIS</option>
+              <option value="5">CHS</option>
+              <option value="6">COE</option>
+            </select>
+          </div>
+
+          <button
+            type="submit"
+            class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-800"
+          >
+            Register User
+          </button>
+        </form>
+      </div>
+    </div>
+  </body>
+</html>

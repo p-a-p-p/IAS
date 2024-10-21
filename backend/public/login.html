@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-gray-100 min-h-screen flex items-center justify-center">
+    <div class="w-full max-w-md bg-white shadow-lg rounded p-8">
+      <h1 class="text-2xl font-bold mb-6 text-center">Login</h1>
+
+      <form id="login-form" class="space-y-4">
+        <div>
+          <label class="block text-gray-700">Email</label>
+          <input
+            type="email"
+            id="email"
+            placeholder="Enter your email"
+            class="w-full border p-2 rounded"
+            required
+          />
+        </div>
+
+        <div>
+          <label class="block text-gray-700">Password</label>
+          <input
+            type="password"
+            id="password"
+            placeholder="Enter your password"
+            class="w-full border p-2 rounded"
+            required
+          />
+        </div>
+
+        <button
+          type="submit"
+          class="bg-blue-600 text-white w-full py-2 rounded hover:bg-blue-800"
+        >
+          Login
+        </button>
+      </form>
+
+      <div id="error-message" class="text-red-500 text-center mt-4 hidden">
+        Invalid credentials. Please try again.
+      </div>
+    </div>
+
+    <script>
+      document
+        .getElementById("login-form")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+
+          const email = document.getElementById("email").value;
+          const password = document.getElementById("password").value;
+
+          try {
+            const response = await fetch("/auth/login", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ email, password }),
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+              const { staffId, userId, department_id, redirectUrl } = data;
+
+              // Determine the role based on the email
+              let role;
+              if (email.endsWith("@admin.com")) role = "admin";
+              else if (email.endsWith("@staff.com")) role = "staff";
+              else if (email.endsWith("@user.com")) role = "user";
+
+              console.log("Login Role:", role); // Debugging log
+
+              // Store IDs and role in session storage
+              if (staffId) sessionStorage.setItem("staffId", staffId);
+              if (userId) sessionStorage.setItem("userId", userId);
+              if (department_id)
+                sessionStorage.setItem("departmentId", department_id);
+              sessionStorage.setItem("role", role); // Store the role
+
+              // Redirect to the appropriate page
+              window.location.href = redirectUrl;
+            } else {
+              console.error("Login failed:", data.message);
+              document
+                .getElementById("error-message")
+                .classList.remove("hidden");
+            }
+          } catch (error) {
+            console.error("Login error:", error);
+            document.getElementById("error-message").classList.remove("hidden");
+          }
+        });
+    </script>
+  </body>
+</html>

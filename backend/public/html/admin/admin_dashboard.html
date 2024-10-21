@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-gray-100 min-h-screen flex">
+    <!-- Sidebar -->
+    <!-- Admin Sidebar -->
+    <div class="w-64 bg-blue-900 text-white flex flex-col justify-between">
+      <div class="p-6">
+        <h2 class="text-xl font-bold">Admin Dashboard</h2>
+        <ul class="mt-8 space-y-4">
+          <li>
+            <a href="admin_dashboard.html" class="hover:text-blue-300"
+              >Dashboard</a
+            >
+          </li>
+          <li>
+            <a href="admin_event.html" class="hover:text-blue-300"
+              >Manage Events</a
+            >
+          </li>
+          <li>
+            <a href="admin_new_staff.html" class="hover:text-blue-300"
+              >Add New Staff</a
+            >
+          </li>
+          <li>
+            <a href="admin_new_user.html" class="hover:text-blue-300"
+              >Add New User</a
+            >
+          </li>
+        </ul>
+      </div>
+
+      <div class="p-6">
+        <button
+          class="w-full bg-red-500 text-white py-2 rounded hover:bg-red-700"
+        >
+          Logout
+        </button>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="flex-1 p-10">
+      <div class="bg-white shadow-md rounded p-6">
+        <h1 class="text-2xl font-semibold">Welcome to the Admin Dashboard</h1>
+        <p class="mt-4">Manage staff, users, and events efficiently.</p>
+
+        <!-- Staff Section -->
+        <h2 class="text-xl font-semibold mt-10">Staff Members by Department</h2>
+        <div class="overflow-y-auto max-h-60 mt-4">
+          <table class="w-full border table-fixed">
+            <thead class="bg-gray-200">
+              <tr>
+                <th class="border px-4 py-2">Name</th>
+                <th class="border px-4 py-2">Email</th>
+                <th class="border px-4 py-2">Department</th>
+                <th class="border px-4 py-2">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% if (staff.length > 0) { %> <% staff.forEach(staffMember => { %>
+              <tr>
+                <td class="border px-4 py-2"><%= staffMember.name %></td>
+                <td class="border px-4 py-2"><%= staffMember.email %></td>
+                <td class="border px-4 py-2">
+                  <%= staffMember.department_name %>
+                </td>
+                <td class="border px-4 py-2 text-center">
+                  <button
+                    class="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-800"
+                  >
+                    Remove
+                  </button>
+                </td>
+              </tr>
+              <% }) %> <% } else { %>
+              <tr>
+                <td colspan="4" class="border px-4 py-2 text-center">
+                  No staff members available.
+                </td>
+              </tr>
+              <% } %>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Users Section -->
+        <h2 class="text-xl font-semibold mt-10">Users by Department</h2>
+        <div class="overflow-y-auto max-h-60 mt-4">
+          <table class="w-full border table-fixed">
+            <thead class="bg-gray-200">
+              <tr>
+                <th class="border px-4 py-2">Name</th>
+                <th class="border px-4 py-2">Email</th>
+                <th class="border px-4 py-2">Department</th>
+                <th class="border px-4 py-2">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% if (users.length > 0) { %> <% users.forEach(user => { %>
+              <tr>
+                <td class="border px-4 py-2"><%= user.name %></td>
+                <td class="border px-4 py-2"><%= user.email %></td>
+                <td class="border px-4 py-2"><%= user.department_name %></td>
+                <td class="border px-4 py-2 text-center">
+                  <button
+                    class="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-800"
+                  >
+                    Remove
+                  </button>
+                </td>
+              </tr>
+              <% }) %> <% } else { %>
+              <tr>
+                <td colspan="4" class="border px-4 py-2 text-center">
+                  No users available.
+                </td>
+              </tr>
+              <% } %>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Add Staff and User Buttons -->
+        <div class="mt-10">
+          <a
+            href="admin_new_staff.html"
+            class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-800 mr-2"
+          >
+            Add New Staff
+          </a>
+          <a
+            href="admin_new_user.html"
+            class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-800"
+          >
+            Add New User
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      function toggleTree(id) {
+        const element = document.getElementById(id);
+        element.classList.toggle("hidden");
+      }
+    </script>
+  </body>
+</html>
