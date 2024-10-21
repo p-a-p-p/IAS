@@ -4,17 +4,20 @@ CREATE TABLE departments (
     name VARCHAR(100) UNIQUE NOT NULL
 );
 
--- Insert Departments
-INSERT INTO departments (name) VALUES
-('CSG'), ('CABE'), ('CEDAS'), ('CCIS'), ('CHS'), ('COE');
+-- Create Admins Table
+CREATE TABLE admin (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL  -- Store hashed passwords here
+);
 
 -- Create Staff Table
 CREATE TABLE staff (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     email VARCHAR(100) UNIQUE NOT NULL,
-    password VARCHAR(255) NOT NULL,
-    department_id INT UNIQUE,
+    password VARCHAR(255) NOT NULL,  -- Store hashed passwords here
+    department_id INT,
     FOREIGN KEY (department_id) REFERENCES departments(id) ON DELETE SET NULL
 );
 
@@ -23,36 +26,44 @@ CREATE TABLE users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     email VARCHAR(100) UNIQUE NOT NULL,
-    password VARCHAR(255) NOT NULL,
+    password VARCHAR(255) NOT NULL,  -- Store hashed passwords here
     department_id INT,
     FOREIGN KEY (department_id) REFERENCES departments(id) ON DELETE SET NULL
 );
 
--- Create Admin Table
-CREATE TABLE admin (
+-- Create Events Table
+CREATE TABLE events (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    email VARCHAR(100) UNIQUE NOT NULL,
-    password VARCHAR(255) NOT NULL
+    name VARCHAR(100) NOT NULL,
+    date DATE NOT NULL,
+    created_by INT,
+    department_id INT,
+    FOREIGN KEY (created_by) REFERENCES staff(id) ON DELETE SET NULL,
+    FOREIGN KEY (department_id) REFERENCES departments(id) ON DELETE SET NULL
 );
 
--- Insert Admin Account
-INSERT INTO admin (email, password) 
-VALUES ('admin@admin.com', '$2a$10$hashed_password_here');  -- Replace with hashed password
 
--- Insert Staff Accounts
-INSERT INTO staff (name, email, password, department_id) VALUES
-('CSG Staff', 'CSG@staff.com', '$2a$10$hashed_password_here', 1),
-('CABE Staff', 'CABE@staff.com', '$2a$10$hashed_password_here', 2),
-('CEDAS Staff', 'CEDAS@staff.com', '$2a$10$hashed_password_here', 3),
-('CCIS Staff', 'CCIS@staff.com', '$2a$10$hashed_password_here', 4),
-('CHS Staff', 'CHS@staff.com', '$2a$10$hashed_password_here', 5),
-('COE Staff', 'COE@staff.com', '$2a$10$hashed_password_here', 6);
+-- Create Attendance Table
+CREATE TABLE attendance (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT,
+    student_id VARCHAR(10),
+    event_id INT NOT NULL,
+    department_id INT NOT NULL,
+    attended_on DATE NOT NULL,
+    CONSTRAINT chk_student_id_format CHECK (student_id REGEXP '^[0-9]{4}-[0-9]{4}-[0-9]$'),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE,
+    FOREIGN KEY (department_id) REFERENCES departments(id) ON DELETE SET NULL
+);
 
--- Insert Example User Accounts
-INSERT INTO users (name, email, password, department_id) VALUES
-('CSG User', 'CSG@user.com', '$2a$10$hashed_password_here', 1),
-('CABE User', 'CABE@user.com', '$2a$10$hashed_password_here', 2),
-('CEDAS User', 'CEDAS@user.com', '$2a$10$hashed_password_here', 3),
-('CCIS User', 'CCIS@user.com', '$2a$10$hashed_password_here', 4),
-('CHS User', 'CHS@user.com', '$2a$10$hashed_password_here', 5),
-('COE User', 'COE@user.com', '$2a$10$hashed_password_here', 6);
+-- Drop the student_list table if it already exists
+DROP TABLE IF EXISTS student_list;
+
+-- Create the student_list table with the new year_level column
+CREATE TABLE student_list (
+    student_id VARCHAR(10) PRIMARY KEY,  -- Student ID (e.g., 1234-5678-9)
+    name VARCHAR(100) NOT NULL,          -- Student's full name
+    course VARCHAR(100) NOT NULL,        -- Course the student is enrolled in
+    year_level INT NOT NULL              -- Student's year level (e.g., 1, 2, 3, 4)
+);

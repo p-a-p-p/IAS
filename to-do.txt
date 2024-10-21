@@ -1,0 +1,24 @@
+Login: Okay na (not secure for now)
+
+Admin: Not done
+
+Staff: 
+    - Staff dashboard: Goods,  
+            Can display Events, Event ID, Event Name, Date, Action
+
+    - Staff Events
+            Can display Events, Event ID, Event Name, Date, Action
+            Can Add Events (not yet done)
+    - Staff Attendance
+            When query, should be able to display Student id, name, Course, Year Level, Event Name, and Event Date. (NOT YET DONE)
+
+
+User:
+
+    User Events:
+            Should be able to display Event ID, Event Name, Date. SHOULD NOT HAVE DELETE BUTTON!
+    
+    User Attendance:
+            Should be the same as Staff Attendance (NOT YET DONE)
+
+
