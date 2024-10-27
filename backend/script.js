@@ -9,13 +9,6 @@ function getEventIdFromUrl() {
   return getQueryParam("event_id");
 }
 
-// Utility: Logout Function
-function logout() {
-  sessionStorage.clear();
-  localStorage.clear();
-  window.location.href = "/login.html";
-}
-
 // Utility: Render Sidebar Based on Role
 
 function renderSidebar() {
@@ -75,12 +68,6 @@ function renderSidebar() {
   }
 
   sidebar.innerHTML = sidebarContent;
-}
-
-// Utility: Logout Function
-function logout() {
-  sessionStorage.clear();
-  window.location.href = "/login.html";
 }
 
 // Utility: Logout Function
@@ -315,12 +302,6 @@ function setupStudentInput(eventId) {
   });
 }
 
-// Validate the Student ID Format
-function validateStudentId(studentId) {
-  const regex = /^[0-9]{4}-[0-9]{4}-[0-9]$/;
-  return regex.test(studentId);
-}
-
 // Send Attendance Data to Backend
 async function addStudentToAttendance(studentId, eventId) {
   try {
@@ -371,14 +352,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 });
-
-// Display a Single Student ID in the List
-function displayStudentId(studentId) {
-  const studentList = document.getElementById("student-id-list");
-  const listItem = document.createElement("li");
-  listItem.textContent = studentId;
-  studentList.appendChild(listItem);
-}
 
 document.addEventListener("DOMContentLoaded", async () => {
   renderSidebar(); // Render the sidebar
@@ -443,14 +416,6 @@ async function addStudentToAttendance(studentId, eventId) {
     console.error("Fetch Error:", error);
     alert("An error occurred. Please try again.");
   }
-}
-
-// Display the Added Student ID in the List
-function displayStudentId(studentId) {
-  const studentList = document.getElementById("student-id-list");
-  const listItem = document.createElement("li");
-  listItem.textContent = studentId;
-  studentList.appendChild(listItem);
 }
 
 // Fetch Student IDs for the Event from Backend
