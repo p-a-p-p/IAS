@@ -2,7 +2,6 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>User Events</title>
     <script src="https://cdn.tailwindcss.com"></script>
   </head>
@@ -19,7 +18,7 @@
     <div class="flex-1 p-10">
       <div class="bg-white shadow-md rounded-lg p-8">
         <h1 class="text-2xl font-semibold mb-6">Available Events</h1>
-        <table class="w-full border">
+        <table id="events-table" class="w-full border">
           <thead class="bg-gray-200">
             <tr>
               <th class="border px-4 py-2">Event ID</th>
@@ -27,7 +26,9 @@
               <th class="border px-4 py-2">Date</th>
             </tr>
           </thead>
-          <tbody id="events-table"></tbody>
+          <tbody>
+            <!-- Event rows will be inserted here by JavaScript -->
+          </tbody>
         </table>
       </div>
     </div>

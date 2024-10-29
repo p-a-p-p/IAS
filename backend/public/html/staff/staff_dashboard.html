@@ -2,38 +2,16 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Staff Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
   </head>
   <body class="bg-gray-100 min-h-screen flex">
     <!-- Sidebar -->
-    <div class="w-64 bg-blue-900 text-white flex flex-col justify-between">
-      <div class="p-4">
-        <h2 class="text-lg font-bold">Staff Dashboard</h2>
-        <ul class="mt-4 space-y-3">
-          <li>
-            <a href="staff_dashboard.html" class="hover:text-blue-300"
-              >Dashboard</a
-            >
-          </li>
-          <li>
-            <a href="staff_events.html" class="hover:text-blue-300">Events</a>
-          </li>
-          <li>
-            <a href="staff_attendance.html" class="hover:text-blue-300"
-              >Attendance</a
-            >
-          </li>
-        </ul>
-      </div>
-      <div class="p-4">
-        <button
-          onclick="logout()"
-          class="w-full bg-red-500 text-white py-2 rounded-lg hover:bg-red-700"
-        >
-          Logout
-        </button>
-      </div>
+    <div
+      id="sidebar"
+      class="w-64 bg-blue-900 text-white flex flex-col justify-between"
+    >
+      <!-- Sidebar will be rendered here -->
     </div>
 
     <!-- Main Content -->
@@ -41,7 +19,7 @@
       <h1 class="text-3xl font-semibold mb-6 text-gray-800">Your Events</h1>
 
       <div class="bg-white shadow-md rounded-lg p-6">
-        <table class="min-w-full border-collapse">
+        <table id="events-table" class="min-w-full border-collapse">
           <thead>
             <tr class="bg-gray-800 text-white text-left">
               <th class="p-4">Event ID</th>
@@ -49,13 +27,12 @@
               <th class="p-4">Date</th>
             </tr>
           </thead>
-          <tbody id="events-table">
-            <!-- Events will be rendered here -->
+          <tbody>
+            <!-- Events will be rendered here by JavaScript -->
           </tbody>
         </table>
       </div>
     </div>
-    <script src="https://cdn.tailwindcss.com"></script>
     <script src="/script.js" defer></script>
   </body>
 </html>

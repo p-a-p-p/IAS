@@ -71,10 +71,10 @@ function renderSidebar() {
         <h2 class="text-2xl font-bold">User Menu</h2>
         <ul class="mt-12 space-y-8">
           <li>
-            <a href="user_events.html" class="hover:text-green-300 text-xl">Events</a>
+            <a href="/html/user/user_events.html" class="hover:text-green-300 text-xl">Events</a>
           </li>
           <li>
-            <a href="user_attendance.html" class="hover:text-green-300 text-xl">Attendance</a>
+            <a href="/html/user/user_attendance.html" class="hover:text-green-300 text-xl">Attendance</a>
           </li>
         </ul>
       </div>
@@ -1020,7 +1020,9 @@ function renderEvents(events) {
   const isAdminPage = currentPath.includes("admin_event");
 
   if (events.length === 0) {
-    tableBody.innerHTML = `<tr><td colspan="5" class="text-center p-4">No events available.</td></tr>`;
+    tableBody.innerHTML = `<tr><td colspan="${
+      isStaffPage ? 4 : 3
+    }" class="text-center p-4">No events available.</td></tr>`;
     return;
   }
 
@@ -1030,7 +1032,6 @@ function renderEvents(events) {
 
     let rowContent = `
       <td class="p-4">${event.id}</td>
-      <td class="p-4">${event.department_name || "N/A"}</td>
       <td class="p-4">
         <a href="/event_name.html?event_id=${encodeURIComponent(
           event.id
@@ -1042,7 +1043,6 @@ function renderEvents(events) {
     if (isStaffPage || isAdminPage) {
       rowContent += `
         <td class="p-4 flex space-x-2 justify-center">
-
           <button class="bg-red-500 hover:bg-red-700 text-white px-3 py-1 rounded"
             onclick="deleteEvent(${event.id})">
             Delete
