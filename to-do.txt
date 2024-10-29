@@ -9,6 +9,7 @@ Staff:
     - Staff Events
             Can display Events, Event ID, Event Name, Date, Action
             Can Add Events (not yet done)
+            
     - Staff Attendance
             When query, should be able to display Student id, name, Course, Year Level, Event Name, and Event Date. (NOT YET DONE)
 

@@ -1,0 +1,675 @@
+// script.js
+
+// Utility Functions
+// -----------------
+
+// Get Query Parameters from URL
+function getQueryParam(param) {
+  const urlParams = new URLSearchParams(window.location.search);
+  return urlParams.get(param);
+}
+
+// Extract Event ID from URL
+function getEventIdFromUrl() {
+  return getQueryParam("event_id");
+}
+
+// Render Sidebar Based on Role
+function renderSidebar() {
+  const role = sessionStorage.getItem("role");
+  const sidebar = document.getElementById("sidebar");
+
+  if (!sidebar) {
+    console.warn("Sidebar element not found.");
+    return;
+  }
+
+  let sidebarContent = "";
+
+  if (role === "admin") {
+    sidebarContent = `
+      <div class="p-4">
+        <h2 class="text-lg font-bold">Admin Dashboard</h2>
+        <ul class="mt-4 space-y-3">
+          <li><a href="/html/admin/admin_dashboard.html" class="hover:text-blue-300">Dashboard</a></li>
+          <li><a href="/html/admin/admin_event.html" class="hover:text-blue-300">Manage Events</a></li>
+          <li><a href="/html/admin/admin_new_staff.html" class="hover:text-blue-300">Add New Staff</a></li>
+          <li><a href="/html/admin/admin_new_user.html" class="hover:text-blue-300">Add New User</a></li>
+        </ul>
+      </div>
+      <div class="p-4">
+        <button id="logout-btn" class="w-full bg-red-500 text-white py-1 rounded-lg hover:bg-red-700">
+          Logout
+        </button>
+      </div>`;
+  } else if (role === "staff") {
+    sidebarContent = `
+      <div class="p-4">
+        <h2 class="text-lg font-bold">Staff Dashboard</h2>
+        <ul class="mt-4 space-y-3">
+          <li><a href="/html/staff/staff_dashboard.html" class="hover:text-blue-300">Dashboard</a></li>
+          <li><a href="/html/staff/staff_events.html" class="hover:text-blue-300">Events</a></li>
+          <li><a href="/html/staff/staff_attendance.html" class="hover:text-blue-300">Attendance</a></li>
+        </ul>
+      </div>
+      <div class="p-4">
+        <button id="logout-btn" class="w-full bg-red-500 text-white py-1 rounded-lg hover:bg-red-700">
+          Logout
+        </button>
+      </div>`;
+  } else if (role === "user") {
+    sidebarContent = `
+      <div class="p-6">
+        <h2 class="text-2xl font-bold">User Menu</h2>
+        <ul class="mt-12 space-y-8">
+          <li>
+            <a href="user_events.html" class="hover:text-green-300 text-xl">Events</a>
+          </li>
+          <li>
+            <a href="user_attendance.html" class="hover:text-green-300 text-xl">Attendance</a>
+          </li>
+        </ul>
+      </div>
+      <div class="p-6">
+        <button id="logout-btn" class="w-full bg-red-500 text-white py-3 text-xl rounded hover:bg-red-700">
+          Logout
+        </button>
+      </div>`;
+  } else {
+    console.error("Role not found in session storage.");
+    alert("Session expired. Please log in again.");
+    window.location.href = "/login.html";
+    return;
+  }
+
+  sidebar.innerHTML = sidebarContent;
+
+  // Add logout event listener
+  const logoutBtn = document.getElementById("logout-btn");
+  if (logoutBtn) {
+    logoutBtn.addEventListener("click", logout);
+  }
+}
+
+// Logout Function
+function logout() {
+  sessionStorage.clear();
+  window.location.href = "/login.html";
+}
+
+// Validate Student ID Format
+function validateStudentId(studentId) {
+  return /^[0-9]{4}-[0-9]{4}-[0-9]$/.test(studentId);
+}
+
+// Main Initialization Function
+// ----------------------------
+document.addEventListener("DOMContentLoaded", () => {
+  renderSidebar();
+  initializePageBasedOnPath();
+});
+
+// Initialize Page Based on Current Path
+function initializePageBasedOnPath() {
+  const currentPath = window.location.pathname;
+  const eventId = getQueryParam("event_id");
+
+  if (currentPath.includes("user_attendance")) {
+    setupUserAttendancePage();
+  } else if (currentPath.includes("staff_dashboard")) {
+    fetchEvents(`/staff/events?staff_id=${sessionStorage.getItem("staffId")}`);
+  } else if (currentPath.includes("staff_attendance")) {
+    setupAttendancePage();
+  } else if (currentPath.includes("staff_events")) {
+    setupEventCreation();
+    fetchEvents(`/staff/events?staff_id=${sessionStorage.getItem("staffId")}`);
+  } else if (currentPath.includes("user_events")) {
+    fetchEvents(`/user/events?user_id=${sessionStorage.getItem("userId")}`);
+  } else if (currentPath.includes("event_name") && eventId) {
+    fetchAndDisplayStudentIds(eventId);
+    setupStudentInput(eventId);
+  }
+}
+
+// Setup Functions
+// ---------------
+
+// Setup Event Creation Page
+function setupEventCreation() {
+  const createEventBtn = document.getElementById("create-event-btn");
+
+  if (!createEventBtn) {
+    console.warn("Create Event button not found.");
+    return;
+  }
+
+  createEventBtn.addEventListener("click", async () => {
+    const name = document.getElementById("event-name").value.trim();
+    const date = document.getElementById("event-date").value;
+    const createdBy = sessionStorage.getItem("staffId");
+    const departmentId = sessionStorage.getItem("departmentId");
+
+    if (!name || !date) {
+      alert("Please fill out all fields.");
+      return;
+    }
+
+    if (!createdBy || !departmentId) {
+      console.error("Missing staffId or departmentId in sessionStorage.");
+      alert("Error: Missing staff or department information.");
+      return;
+    }
+
+    try {
+      const response = await fetch("/staff/events", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name,
+          date,
+          created_by: createdBy,
+          department_id: departmentId,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        alert("Event created successfully!");
+        location.reload();
+      } else {
+        console.error("Backend Error:", data);
+        alert(`Error: ${data.message}`);
+      }
+    } catch (error) {
+      console.error("Error creating event:", error);
+      alert("An error occurred. Please try again.");
+    }
+  });
+}
+
+// Setup Attendance Page
+function setupAttendancePage() {
+  const searchBtn = document.getElementById("search-btn");
+  const searchInput = document.getElementById("search-input");
+
+  if (searchBtn && searchInput) {
+    searchBtn.addEventListener("click", () => {
+      const studentId = searchInput.value.trim();
+      if (studentId) {
+        fetchStudentAttendance(studentId);
+      } else {
+        alert("Please enter a valid student ID.");
+      }
+    });
+  } else {
+    console.warn("Search button or input not found on this page.");
+  }
+}
+
+// Setup Student Input Handling
+function setupStudentInput(eventId) {
+  const addStudentBtn = document.getElementById("add-student-btn");
+  const studentIdInput = document.getElementById("student-id");
+
+  if (!addStudentBtn || !studentIdInput) {
+    console.warn("Add Student button or input not found.");
+    return;
+  }
+
+  addStudentBtn.addEventListener("click", async () => {
+    const studentId = studentIdInput.value.trim();
+    if (validateStudentId(studentId)) {
+      const student = await addStudentToAttendance(studentId, eventId);
+      if (student) displayStudentDetails(student);
+      studentIdInput.value = "";
+    } else {
+      alert("Invalid Student ID format. Please use xxxx-xxxx-x format.");
+    }
+  });
+
+  studentIdInput.addEventListener("keypress", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      addStudentBtn.click();
+    }
+  });
+}
+
+// Setup User Attendance Page
+function setupUserAttendancePage() {
+  const studentId = sessionStorage.getItem("studentId");
+
+  if (studentId) {
+    // Fetch attendance records for the logged-in user by default
+    fetchStudentAttendance(studentId);
+  }
+
+  const searchBtn = document.getElementById("search-btn");
+  const searchInput = document.getElementById("search-input");
+
+  if (searchBtn && searchInput) {
+    searchBtn.addEventListener("click", () => {
+      const inputStudentId = searchInput.value.trim();
+      if (inputStudentId) {
+        fetchStudentAttendance(inputStudentId);
+      } else {
+        alert("Please enter a valid student ID.");
+      }
+    });
+  } else {
+    console.warn("Search button or input not found on this page.");
+  }
+}
+
+// API Functions
+// -------------
+
+// Fetch Events and Render Them
+async function fetchEvents(endpoint) {
+  try {
+    const response = await fetch(endpoint);
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || "Failed to load events.");
+    }
+
+    renderEvents(data);
+  } catch (error) {
+    console.error("Error fetching events:", error);
+    alert(error.message);
+  }
+}
+
+// Fetch Attendance Records and Render Them
+async function fetchAttendance(eventId) {
+  try {
+    const response = await fetch(`/staff/attendance/${eventId}`);
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || "Failed to fetch attendance.");
+    }
+
+    renderAttendance(data);
+  } catch (error) {
+    console.error("Error fetching attendance:", error);
+    alert(error.message);
+  }
+}
+
+// Fetch Attendance Records for a Student by their ID
+async function fetchStudentAttendance(studentId) {
+  const departmentId = sessionStorage.getItem("departmentId");
+  if (!departmentId) {
+    alert("Department ID is missing. Please log in again.");
+    window.location.href = "/login.html";
+    return;
+  }
+
+  try {
+    const response = await fetch(
+      `/attendance/student/${studentId}?department_id=${departmentId}`
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      alert(
+        data.message || "No events found for this student in your department."
+      );
+      clearAttendanceTable();
+      return;
+    }
+
+    renderAttendanceRecords(data, studentId);
+  } catch (error) {
+    console.error("Error fetching attendance records:", error);
+    alert("An error occurred. Please try again.");
+  }
+}
+
+// Add Student to Attendance
+async function addStudentToAttendance(studentId, eventId) {
+  try {
+    const response = await fetch("/attendance", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ student_id: studentId, event_id: eventId }),
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      return data;
+    } else {
+      alert(`Failed to add student: ${data.message}`);
+      return null;
+    }
+  } catch (error) {
+    console.error("Error adding student:", error);
+    alert("An error occurred. Please try again.");
+    return null;
+  }
+}
+
+// Fetch and Display Student IDs for Event
+async function fetchAndDisplayStudentIds(eventId) {
+  try {
+    const response = await fetch(`/attendance/${eventId}`);
+    const students = await response.json();
+
+    if (response.ok) {
+      if (students.length === 0) {
+        displayNoStudentsMessage();
+      } else {
+        students.forEach((student) => displayStudentDetails(student));
+      }
+    } else {
+      console.error("Failed to fetch student IDs:", students.message);
+      alert("Could not load student details.");
+    }
+  } catch (error) {
+    console.error("Error fetching student details:", error);
+    alert("An error occurred. Please try again.");
+  }
+}
+
+// Send Data to Server (For CSV/Excel Upload)
+function sendDataToServer(studentIds) {
+  const eventID = getQueryParam("event_id");
+
+  if (!eventID) {
+    console.error("Event ID is missing.");
+    alert("Error: Event ID not found.");
+    return;
+  }
+
+  const payload = {
+    event_id: eventID,
+    student_ids: studentIds.map((id) => id.replace(/['"]+/g, "")),
+  };
+
+  console.log("Sending Payload:", payload);
+
+  fetch("/attendance", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  })
+    .then(async (response) => {
+      const data = await response.json();
+      if (response.ok) {
+        console.log("Data imported successfully:", data);
+        alert(data.message);
+        location.reload();
+      } else {
+        console.error("Backend responded with an error:", data);
+        alert(`Error: ${data.message}`);
+      }
+    })
+    .catch((error) => {
+      console.error("Error importing data:", error);
+      alert("An error occurred. Please try again.");
+    });
+}
+
+// DOM Manipulation Functions
+// --------------------------
+
+// Render Events into the Table
+function renderEvents(events) {
+  const tableBody = document.getElementById("events-table");
+  if (!tableBody) {
+    console.warn("Events table not found.");
+    return;
+  }
+  tableBody.innerHTML = "";
+
+  const currentPath = window.location.pathname;
+  const isStaffPage = currentPath.includes("staff_events");
+
+  if (events.length === 0) {
+    tableBody.innerHTML = `<tr><td colspan="${
+      isStaffPage ? 4 : 3
+    }" class="text-center p-4">No events available.</td></tr>`;
+    return;
+  }
+
+  events.forEach((event) => {
+    const row = document.createElement("tr");
+    row.classList.add("border-b", "hover:bg-gray-100");
+
+    let rowContent = `
+      <td class="p-4">${event.id}</td>
+      <td class="p-4">
+        <a href="/event_name.html?event_id=${encodeURIComponent(
+          event.id
+        )}" class="text-blue-500 hover:underline">${event.name}</a>
+      </td>
+      <td class="p-4">${new Date(event.date).toLocaleDateString()}</td>
+    `;
+
+    if (isStaffPage) {
+      rowContent += `
+        <td class="p-4">
+          <button class="bg-red-500 hover:bg-red-700 text-white px-3 py-1 rounded"
+            data-event-id="${event.id}">
+            Delete
+          </button>
+        </td>
+      `;
+    }
+
+    row.innerHTML = rowContent;
+
+    // Add event listener for the delete button if on staff page
+    if (isStaffPage) {
+      const deleteButton = row.querySelector("button[data-event-id]");
+      if (deleteButton) {
+        deleteButton.addEventListener("click", () =>
+          deleteEvent(deleteButton.getAttribute("data-event-id"))
+        );
+      }
+    }
+
+    tableBody.appendChild(row);
+  });
+}
+
+// Render Attendance Records
+function renderAttendance(records) {
+  const tableBody = document
+    .getElementById("attendance-table")
+    .getElementsByTagName("tbody")[0];
+
+  if (!tableBody) {
+    console.warn("Attendance table body not found.");
+    return;
+  }
+
+  tableBody.innerHTML = "";
+
+  if (records.length === 0) {
+    tableBody.innerHTML = `<tr><td colspan="2" class="text-center p-4">No attendance records found.</td></tr>`;
+    return;
+  }
+
+  records.forEach((record) => {
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td class="border px-4 py-2">${record.user_name}</td>
+      <td class="border px-4 py-2">${new Date(
+        record.attended_on
+      ).toLocaleDateString()}</td>
+    `;
+    tableBody.appendChild(row);
+  });
+}
+
+// Render Attendance Records into the Table
+function renderAttendanceRecords(records, studentId) {
+  const attendanceBody = document.getElementById("attendance-body");
+  if (!attendanceBody) {
+    console.warn("Attendance body not found.");
+    return;
+  }
+  attendanceBody.innerHTML = "";
+
+  if (records.length === 0) {
+    attendanceBody.innerHTML = `<tr><td colspan="6" class="text-center p-4">No events found.</td></tr>`;
+    return;
+  }
+
+  records.forEach((record) => {
+    const row = document.createElement("tr");
+
+    row.innerHTML = `
+      <td class="border px-4 py-2">${record.student_id || studentId}</td>
+      <td class="border px-4 py-2">${record.student_name || "N/A"}</td>
+      <td class="border px-4 py-2">${record.course || "N/A"}</td>
+      <td class="border px-4 py-2">${record.year_level || "N/A"}</td>
+      <td class="border px-4 py-2">${record.event_name || "N/A"}</td>
+      <td class="border px-4 py-2">${
+        record.event_date
+          ? new Date(record.event_date).toLocaleDateString()
+          : "N/A"
+      }</td>
+    `;
+
+    attendanceBody.appendChild(row);
+  });
+}
+
+// Clear Attendance Table
+function clearAttendanceTable() {
+  const attendanceBody = document.getElementById("attendance-body");
+  if (attendanceBody) {
+    attendanceBody.innerHTML = `<tr><td colspan="6" class="text-center p-4">No events found.</td></tr>`;
+  }
+}
+
+// Display Student Details
+function displayStudentDetails(student) {
+  const studentList = document.getElementById("student-id-list");
+  if (!studentList) {
+    console.warn("Student list element not found.");
+    return;
+  }
+
+  const listItem = document.createElement("li");
+  listItem.classList.add("p-2", "border-b", "border-gray-300");
+
+  listItem.innerHTML = `
+    <strong>ID:</strong> ${student.student_id || "N/A"} <br />
+    <strong>Name:</strong> ${student.name || "N/A"} <br />
+    <strong>Course:</strong> ${student.course || "N/A"} <br />
+    <strong>Year Level:</strong> ${student.year_level || "N/A"}
+  `;
+
+  studentList.appendChild(listItem);
+}
+
+// Display Message When No Students are Found
+function displayNoStudentsMessage() {
+  const studentList = document.getElementById("student-id-list");
+  if (studentList) {
+    studentList.innerHTML = `<li class="p-2 text-center">No students have attended this event yet.</li>`;
+  }
+}
+
+// Delete Event
+async function deleteEvent(eventId) {
+  const confirmation = confirm("Are you sure you want to delete this event?");
+  if (!confirmation) return;
+
+  try {
+    const response = await fetch(`/staff/events/${eventId}`, {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+    });
+
+    const data = await response.json();
+    if (response.ok) {
+      alert("Event deleted successfully!");
+      location.reload();
+    } else {
+      alert(`Error: ${data.message}`);
+    }
+  } catch (error) {
+    console.error("Error deleting event:", error);
+    alert("An error occurred. Please try again.");
+  }
+}
+
+// Event Listener for Reading Excel/CSV Files
+const readExcelButton = document.getElementById("read-excel");
+if (readExcelButton) {
+  readExcelButton.addEventListener("click", function () {
+    const fileInput = document.getElementById("excel-file");
+    const file = fileInput.files[0];
+
+    if (!file) {
+      console.error("No file selected.");
+      return;
+    }
+
+    const fileExtension = file.name.split(".").pop().toLowerCase();
+
+    if (fileExtension === "xlsx") {
+      // Handle Excel file
+      const reader = new FileReader();
+      reader.onload = function (event) {
+        const data = new Uint8Array(event.target.result);
+        const workbook = XLSX.read(data, { type: "array" });
+        const sheetName = workbook.SheetNames[0];
+        const sheet = workbook.Sheets[sheetName];
+
+        const studentIds = [];
+        const range = XLSX.utils.decode_range(sheet["!ref"]);
+
+        for (let rowNum = 3; rowNum <= range.e.r; rowNum++) {
+          // Start from B4
+          const cellAddress = XLSX.utils.encode_cell({ r: rowNum, c: 1 }); // Column B
+          const cell = sheet[cellAddress];
+          const cellValue = cell ? cell.v : undefined;
+          if (cellValue !== undefined) {
+            studentIds.push(cellValue.trim());
+          }
+        }
+
+        console.log("Extracted Student IDs (Excel):", studentIds);
+        sendDataToServer(studentIds);
+      };
+      reader.readAsArrayBuffer(file);
+    } else if (fileExtension === "csv") {
+      // Handle CSV file
+      const reader = new FileReader();
+      reader.onload = function (event) {
+        const csvData = event.target.result;
+        const rows = csvData.split("\n");
+
+        const studentIds = [];
+        for (let i = 3; i < rows.length; i++) {
+          // Start from B4
+          const columns = rows[i].split(",");
+          const cellValue = columns[1]; // Extract from second column (B)
+          if (cellValue) {
+            studentIds.push(cellValue.trim());
+          }
+        }
+
+        console.log("Extracted Student IDs (CSV):", studentIds);
+        sendDataToServer(studentIds);
+      };
+      reader.readAsText(file);
+    } else {
+      console.error(
+        "Unsupported file format. Please upload an Excel or CSV file."
+      );
+    }
+  });
+}

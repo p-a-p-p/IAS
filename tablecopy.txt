@@ -1,34 +1,15 @@
 -- Insert Departments
-INSERT INTO departments (name) VALUES ('CSG'), ('CABE'), ('CCIS');
+INSERT INTO departments (name) VALUES ('CSG'), ('CABE'), ('CCIS'), ('CEDAS'), ('COE'), ('CHS');
 
 -- Insert Admin
-INSERT INTO admin (email, password) VALUES ('admin@admin.com', '$2a$10$hashed_password_here');
+INSERT INTO admin (email, password) VALUES ('admin@admin.com', '$2a$10$2vKJcfd2JNn8I5GDEtS74eCJerMzolnv..5Rr0PAIccNwmXmybutm
+');
 
--- Insert Staff
-INSERT INTO staff (name, email, password, department_id) 
-VALUES ('John Staff', 'csgstaff@staff.com', '$2a$10$hashed_password_here', 
-        (SELECT id FROM departments WHERE name = 'CSG'));
-
--- Insert Users
-INSERT INTO users (name, email, password, department_id) 
-VALUES ('Alice User', 'csguser@user.com', '$2a$10$hashed_password_here', 
-        (SELECT id FROM departments WHERE name = 'CSG'));
-
--- Insert Event
-INSERT INTO events (name, date, created_by) 
-VALUES ('Orientation', '2024-10-20', 
-        (SELECT id FROM staff WHERE email = 'csgstaff@staff.com'));
-
--- Insert Attendance Record
-INSERT INTO attendance (user_id, event_id, attended_on) 
-VALUES ((SELECT id FROM users WHERE email = 'csguser@user.com'  ), 
-        (SELECT id FROM events WHERE name = 'Orientation'), 
-        '2024-10-20');
 
 -- Insert sample students with year levels
 INSERT INTO student_list (student_id, name, course, year_level) VALUES
-('1234-5678-9', 'Alice Johnson', 'Computer Science', 3),
-('2345-6789-0', 'Bob Smith', 'Information Technology', 2),
-('3456-7890-1', 'Charlie Lee', 'Business Management', 1),
-('4567-8901-2', 'Dana White', 'Engineering', 4),
-('5678-9012-3', 'Eve Black', 'Law', 2);
+('1234-5678-9', 'Philip Ponce', 'Computer Science', 3),
+('1111-1111-1', 'Klent Paraiso', 'Information Technology', 2),
+('2222-2222-2', 'Jumpford Balingot', 'Business Management', 1),
+('3333-3333-3', 'Boss Amo', 'Engineering', 4),
+('4444-4444-4', 'Eve Black', 'Law', 2);
