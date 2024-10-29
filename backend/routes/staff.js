@@ -2,7 +2,6 @@ const express = require("express");
 const router = express.Router();
 const db = require("../config/db");
 
-// Get all events created by this staff
 // Get events based on staff ID or department ID
 router.get("/events", async (req, res) => {
   const { staff_id, department_id } = req.query;

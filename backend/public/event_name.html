@@ -6,7 +6,6 @@
     <title>Event Details</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="/script.js" defer></script>
-    <!-- Link to script.js -->
   </head>
   <body class="bg-gray-100 min-h-screen flex">
     <!-- Sidebar -->
@@ -36,17 +35,40 @@
           >
             Add
           </button>
-          <input type="file" id="file-input" class="border p-1 rounded" />
-          <button
-            class="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-800"
-          >
-            Import
-          </button>
+
+          <!-- CSV Import Section -->
+          <div class="flex items-center">
+            <input
+              type="file"
+              id="excel-file"
+              accept=".csv"
+              class="border p-1 rounded"
+            />
+            <button
+              id="read-excel"
+              class="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-800"
+            >
+              Import
+            </button>
+          </div>
           <button
             class="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-800"
           >
             Export
           </button>
+        </div>
+
+        <!-- Student Details Section (Initially Hidden) -->
+        <div id="student-info" class="mt-4 hidden">
+          <h2 class="text-xl font-semibold mb-2">Student Details</h2>
+          <p><strong>ID:</strong> <span id="display-student-id"></span></p>
+          <p><strong>Name:</strong> <span id="display-student-name"></span></p>
+          <p>
+            <strong>Course:</strong> <span id="display-student-course"></span>
+          </p>
+          <p>
+            <strong>Year Level:</strong> <span id="display-student-year"></span>
+          </p>
         </div>
 
         <!-- Student ID List Section -->

@@ -4,36 +4,18 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>User Events</title>
-    <script src="/script.js" defer></script>
     <script src="https://cdn.tailwindcss.com"></script>
   </head>
   <body class="bg-gray-100 min-h-screen flex">
-    <div class="w-64 bg-green-900 text-white flex flex-col justify-between">
-      <div class="p-6">
-        <h2 class="text-2xl font-bold">User Menu</h2>
-        <ul class="mt-12 space-y-8">
-          <li>
-            <a href="user_events.html" class="hover:text-green-300 text-xl"
-              >Events</a
-            >
-          </li>
-          <li>
-            <a href="user_attendance.html" class="hover:text-green-300 text-xl"
-              >Attendance</a
-            >
-          </li>
-        </ul>
-      </div>
-      <div class="p-6">
-        <button
-          class="w-full bg-red-500 text-white py-3 text-xl rounded hover:bg-red-700"
-          onclick="logout()"
-        >
-          Logout
-        </button>
-      </div>
+    <!-- Sidebar -->
+    <div
+      id="sidebar"
+      class="w-64 bg-green-900 text-white flex flex-col justify-between"
+    >
+      <!-- Sidebar will be rendered here -->
     </div>
 
+    <!-- Main Content -->
     <div class="flex-1 p-10">
       <div class="bg-white shadow-md rounded-lg p-8">
         <h1 class="text-2xl font-semibold mb-6">Available Events</h1>
@@ -49,5 +31,8 @@
         </table>
       </div>
     </div>
+
+    <!-- Include the script.js file -->
+    <script src="/script.js" defer></script>
   </body>
 </html>

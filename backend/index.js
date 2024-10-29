@@ -2,10 +2,12 @@ const express = require("express");
 const path = require("path");
 const authRoutes = require("./routes/auth");
 const userRoutes = require("./routes/user");
-const staffRoutes = require("./routes/staff"); // Import staff routes
+const staffRoutes = require("./routes/staff");
 const attendanceRoutes = require("./routes/attendance");
+const adminRoutes = require("./routes/admin"); // Add this line
+const departmentsRoutes = require("./routes/departments"); // Add this line
 const dotenv = require("dotenv");
-dotenv.config(); // Load environment variables
+dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -19,6 +21,9 @@ app.use("/auth", authRoutes);
 app.use("/user", userRoutes);
 app.use("/staff", staffRoutes);
 app.use("/attendance", attendanceRoutes);
+app.use("/admin", adminRoutes); // Add this line
+app.use("/departments", departmentsRoutes); // Add this line
+
 // Serve login page at the root URL
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "login.html"));

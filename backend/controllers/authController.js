@@ -2,31 +2,50 @@
 const bcrypt = require("bcryptjs");
 const db = require("../config/db");
 
-// Register User
 const register = async (req, res) => {
   const { name, email, password, department_id } = req.body;
 
   try {
-    // Check if the user already exists
-    const [existingUser] = await db.query(
-      "SELECT email FROM users WHERE email = ?",
-      [email]
-    );
-    if (existingUser.length > 0) {
-      return res.status(400).json({ message: "User already exists" });
+    let tableName;
+
+    // Determine the user type based on email domain
+    if (email.endsWith("@admin.com")) {
+      tableName = "admin";
+    } else if (email.endsWith("@staff.com")) {
+      tableName = "staff";
+    } else if (email.endsWith("@user.com")) {
+      tableName = "users";
+    } else {
+      return res.status(400).json({ message: "Invalid email domain" });
     }
 
-    // Hash the password with bcrypt
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
+    // Check if the email already exists in the selected table
+    const checkQuery = `SELECT id FROM ${tableName} WHERE email = ?`;
+    const [existingUser] = await db.query(checkQuery, [email]);
 
-    // Insert new user into the database
-    await db.query(
-      "INSERT INTO users (name, email, password, department_id) VALUES (?, ?, ?, ?)",
-      [name, email, hashedPassword, department_id]
-    );
+    if (existingUser.length > 0) {
+      return res.status(400).json({ message: "Email already exists" });
+    }
 
-    res.status(201).json({ message: "User registered successfully" });
+    // Hash the password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Insert the new user/admin/staff into the appropriate table
+    let insertQuery, params;
+
+    if (tableName === "admin") {
+      insertQuery = `INSERT INTO admin (email, password) VALUES (?, ?)`;
+      params = [email, hashedPassword];
+    } else {
+      insertQuery = `INSERT INTO ${tableName} (name, email, password, department_id) VALUES (?, ?, ?, ?)`;
+      params = [name, email, hashedPassword, department_id];
+    }
+
+    const [result] = await db.query(insertQuery, params);
+
+    res
+      .status(201)
+      .json({ message: "Registration successful", id: result.insertId });
   } catch (error) {
     console.error("Registration error:", error);
     res.status(500).json({ message: "Server error" });

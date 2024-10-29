@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Add New Staff</title>
+    <title>Edit User</title>
     <script src="https://cdn.tailwindcss.com"></script>
   </head>
   <body class="bg-gray-100 min-h-screen flex">
@@ -18,8 +18,8 @@
     <!-- Main Content -->
     <div class="flex-1 p-10">
       <div class="bg-white shadow-md rounded p-6 max-w-lg mx-auto">
-        <h1 class="text-2xl font-semibold">Add New Staff Member</h1>
-        <form id="staff-form" class="mt-6">
+        <h1 class="text-2xl font-semibold">Edit User</h1>
+        <form id="user-form" class="mt-6">
           <div class="mb-4">
             <label class="block text-gray-700">Name</label>
             <input
@@ -39,16 +39,6 @@
             />
           </div>
           <div class="mb-4">
-            <label class="block text-gray-700">Password</label>
-            <input
-              type="password"
-              id="password"
-              class="w-full p-2 border rounded"
-              required
-            />
-          </div>
-
-          <div class="mb-4">
             <label class="block text-gray-700">Department</label>
             <select
               id="department_id"
@@ -60,9 +50,9 @@
           </div>
           <button
             type="submit"
-            class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-800"
+            class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-800"
           >
-            Add Staff
+            Update User
           </button>
         </form>
       </div>

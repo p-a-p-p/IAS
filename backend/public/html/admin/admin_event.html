@@ -8,39 +8,11 @@
   </head>
   <body class="bg-gray-100 min-h-screen flex">
     <!-- Sidebar -->
-    <div class="w-64 bg-blue-900 text-white flex flex-col justify-between">
-      <div class="p-6">
-        <h2 class="text-xl font-bold">Admin Dashboard</h2>
-        <ul class="mt-8 space-y-4">
-          <li>
-            <a href="admin_dashboard.html" class="hover:text-blue-300"
-              >Dashboard</a
-            >
-          </li>
-          <li>
-            <a href="admin_event.html" class="hover:text-blue-300"
-              >Manage Events</a
-            >
-          </li>
-          <li>
-            <a href="admin_new_staff.html" class="hover:text-blue-300"
-              >Add New Staff</a
-            >
-          </li>
-          <li>
-            <a href="admin_new_user.html" class="hover:text-blue-300"
-              >Add New User</a
-            >
-          </li>
-        </ul>
-      </div>
-      <div class="p-6">
-        <button
-          class="w-full bg-red-500 text-white py-2 rounded hover:bg-red-700"
-        >
-          Logout
-        </button>
-      </div>
+    <div
+      id="sidebar"
+      class="w-64 bg-blue-900 text-white flex flex-col justify-between"
+    >
+      <!-- Sidebar content will be rendered here by script.js -->
     </div>
 
     <!-- Main Content -->
@@ -72,16 +44,11 @@
           <div>
             <label class="block text-gray-700">Department</label>
             <select
-              id="department-name"
+              id="department_id"
               class="w-full border p-2 rounded"
               required
             >
-              <option value="CSG">CSG</option>
-              <option value="CABE">CABE</option>
-              <option value="CEDAS">CEDAS</option>
-              <option value="CCIS">CCIS</option>
-              <option value="CHS">CHS</option>
-              <option value="COE">COE</option>
+              <!-- Department options will be loaded dynamically -->
             </select>
           </div>
           <button
@@ -95,18 +62,9 @@
         <!-- Filter by Department -->
         <div class="mt-6">
           <label class="block text-gray-700">Filter by Department</label>
-          <select
-            id="filter-department"
-            class="w-full border p-2 rounded"
-            onchange="filterByDepartment()"
-          >
+          <select id="filter-department" class="w-full border p-2 rounded">
             <option value="">All Departments</option>
-            <option value="CSG">CSG</option>
-            <option value="CABE">CABE</option>
-            <option value="CEDAS">CEDAS</option>
-            <option value="CCIS">CCIS</option>
-            <option value="CHS">CHS</option>
-            <option value="COE">COE</option>
+            <!-- Department options will be loaded dynamically -->
           </select>
         </div>
 
@@ -123,50 +81,13 @@
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td class="border px-4 py-2">1</td>
-                <td class="border px-4 py-2">CSG</td>
-                <td class="border px-4 py-2">
-                  <a
-                    href="/event_name.html"
-                    class="text-blue-500 hover:underline"
-                    >Orientation</a
-                  >
-                </td>
-                <td class="border px-4 py-2">10/20/2024</td>
-                <td class="border px-4 py-2 flex space-x-2 justify-center">
-                  <button
-                    class="bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-700"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    class="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-800"
-                  >
-                    Delete
-                  </button>
-                </td>
-              </tr>
-              <!-- Add more rows as needed -->
+              <!-- Event rows will be dynamically loaded -->
             </tbody>
           </table>
         </div>
       </div>
     </div>
 
-    <script>
-      function filterByDepartment() {
-        const filter = document
-          .getElementById("filter-department")
-          .value.toLowerCase();
-        const rows = document.querySelectorAll("#events-table tbody tr");
-
-        rows.forEach((row) => {
-          const department = row.cells[1].textContent.toLowerCase();
-          row.style.display =
-            filter === "" || department === filter ? "" : "none";
-        });
-      }
-    </script>
+    <script src="/script.js" defer></script>
   </body>
 </html>
