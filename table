@@ -1,4 +1,4 @@
-CREATE SCHEMA attendance;
+CREATE SCHEMA attendance_system;
 
 USE attendance_system;
 
@@ -53,7 +53,7 @@ CREATE TABLE IF NOT EXISTS attendance (
     user_id INT,
     student_id VARCHAR(11),
     event_id INT NOT NULL,
-    department_id INT NOT NULL,
+    department_id INT,
     attended_on DATE NOT NULL,
     CONSTRAINT chk_student_id_format CHECK (student_id REGEXP '^[0-9]{4}-[0-9]{4}-[0-9]$'),
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
