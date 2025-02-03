@@ -107,7 +107,7 @@ function logout() {
 
 // Validate Student ID Format
 function validateStudentId(studentId) {
-  return /^[0-9]{4}-[0-9]{4}-[0-9]$/.test(studentId);
+  return /^(?:[0-9]{4}-[0-9]{4}-[0-9]|[0-9]{6})$/.test(studentId);
 }
 
 // Main Initialization Function
@@ -115,6 +115,69 @@ function validateStudentId(studentId) {
 document.addEventListener("DOMContentLoaded", () => {
   renderSidebar();
   initializePageBasedOnPath();
+});
+document.addEventListener('DOMContentLoaded', function() {
+  const scanBtn = document.getElementById('scan-barcode-btn');
+  const closeScannerBtn = document.getElementById('close-scanner-btn');
+  const scannerContainer = document.getElementById('barcode-scanner');
+
+  // When the "Scan Barcode" button is clicked, show the scanner and start QuaggaJS.
+  if (scanBtn) {
+    scanBtn.addEventListener('click', function() {
+      // Show the barcode scanner section.
+      scannerContainer.classList.remove('hidden');
+      
+      // Initialize QuaggaJS with configuration for the live stream.
+      Quagga.init({
+        inputStream: {
+          name: "Live",
+          type: "LiveStream",
+          target: document.querySelector('#barcode-video'),
+          constraints: {
+            facingMode: "environment" // Use the back camera if available.
+          }
+        },
+        decoder: {
+          // Adjust the list of readers based on the barcode types you expect.
+          readers: ["code_128_reader", "ean_reader", "ean_8_reader"]
+        }
+      }, function(err) {
+        if (err) {
+          console.error("Quagga initialization error:", err);
+          alert("Error starting barcode scanner: " + err);
+          return;
+        }
+        Quagga.start();
+      });
+    });
+  }
+
+  // When the "Close Scanner" button is clicked, stop QuaggaJS and hide the scanner section.
+  if (closeScannerBtn) {
+    closeScannerBtn.addEventListener('click', function() {
+      Quagga.stop();
+      scannerContainer.classList.add('hidden');
+    });
+  }
+
+  // Listen for barcode detection events.
+  Quagga.onDetected(function(result) {
+    // Retrieve the detected barcode.
+    const code = result.codeResult.code;
+    console.log("Barcode detected:", code);
+    
+    // Optionally, you can validate or transform the barcode here.
+    // For instance, if your student IDs are in one of the allowed formats,
+    // you can automatically populate the student-id input.
+    document.getElementById('student-id').value = code;
+    
+    // Stop the scanner and hide the scanner section.
+    Quagga.stop();
+    scannerContainer.classList.add('hidden');
+    
+    // Optionally, trigger the "Add" button to process the scanned student ID.
+    // document.getElementById('add-student-btn').click();
+  });
 });
 
 // Initialize Page Based on Current Path
@@ -279,25 +342,33 @@ function setupEventCreation() {
   });
 }
 
-// Setup Attendance Page
+// Setup Attendance Page (for staff)
 function setupAttendancePage() {
   const searchBtn = document.getElementById("search-btn");
   const searchInput = document.getElementById("search-input");
+  // Get the search type dropdown element (if present)
+  const searchTypeSelect = document.getElementById("search-type");
 
   if (searchBtn && searchInput) {
     searchBtn.addEventListener("click", () => {
-      const studentId = searchInput.value.trim();
-      if (studentId) {
-        fetchStudentAttendance(studentId);
+      const searchTerm = searchInput.value.trim();
+
+      if (!searchTerm) {
+        alert("Please enter a search term.");
+        return;
+      }
+
+      // Check if the search type is set to 'name'
+      if (searchTypeSelect && searchTypeSelect.value === "name") {
+        fetchStudentAttendanceByName(searchTerm);
       } else {
-        alert("Please enter a valid student ID.");
+        fetchStudentAttendance(searchTerm);
       }
     });
   } else {
     console.warn("Search button or input not found on this page.");
   }
 }
-
 // Setup Student Input Handling
 function setupStudentInput(eventId) {
   const addStudentBtn = document.getElementById("add-student-btn");
@@ -315,7 +386,7 @@ function setupStudentInput(eventId) {
       if (student) displayStudentDetails(student);
       studentIdInput.value = "";
     } else {
-      alert("Invalid Student ID format. Please use xxxx-xxxx-x format.");
+      alert("Invalid Student ID format. Please use xxxx-xxxx-x or xxxxxx format.");
     }
   });
 
@@ -327,31 +398,42 @@ function setupStudentInput(eventId) {
   });
 }
 
-// Setup User Attendance Page
+// Setup User Attendance Page (for logged-in users)
 function setupUserAttendancePage() {
   const studentId = sessionStorage.getItem("studentId");
 
+  // If a student is logged in, display their attendance by default (using their ID)
   if (studentId) {
-    // Fetch attendance records for the logged-in user by default
     fetchStudentAttendance(studentId);
   }
 
   const searchBtn = document.getElementById("search-btn");
   const searchInput = document.getElementById("search-input");
+  // Get the search type dropdown element
+  const searchTypeSelect = document.getElementById("search-type");
 
   if (searchBtn && searchInput) {
     searchBtn.addEventListener("click", () => {
-      const inputStudentId = searchInput.value.trim();
-      if (inputStudentId) {
-        fetchStudentAttendance(inputStudentId);
+      const searchTerm = searchInput.value.trim();
+
+      if (!searchTerm) {
+        alert("Please enter a search term.");
+        return;
+      }
+
+      // If the search type is 'name', call the function to search by name.
+      if (searchTypeSelect && searchTypeSelect.value === "name") {
+        fetchStudentAttendanceByName(searchTerm);
       } else {
-        alert("Please enter a valid student ID.");
+        // Otherwise, search by student ID.
+        fetchStudentAttendance(searchTerm);
       }
     });
   } else {
     console.warn("Search button or input not found on this page.");
   }
 }
+
 
 // API Functions
 // -------------
@@ -401,6 +483,39 @@ async function fetchAttendance(eventId) {
     alert(error.message);
   }
 }
+
+// Fetch Attendance Records for a Student by their Name
+async function fetchStudentAttendanceByName(studentName) {
+  const departmentId = sessionStorage.getItem("departmentId");
+  if (!departmentId) {
+    alert("Department ID is missing. Please log in again.");
+    window.location.href = "/login.html";
+    return;
+  }
+
+  try {
+    // Use encodeURIComponent to safely include names with spaces/special characters in the URL
+    const response = await fetch(
+      `/attendance/student/name/${encodeURIComponent(studentName)}?department_id=${departmentId}`
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      alert(
+        data.message || "No events found for this student in your department."
+      );
+      clearAttendanceTable();
+      return;
+    }
+
+    renderAttendanceRecords(data);
+  } catch (error) {
+    console.error("Error fetching attendance records by name:", error);
+    alert("An error occurred. Please try again.");
+  }
+}
+
 
 // Fetch Attendance Records for a Student by their ID
 async function fetchStudentAttendance(studentId) {

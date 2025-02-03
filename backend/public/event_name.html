@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Event Details</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Include QuaggaJS from CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
     <script src="/script.js" defer></script>
   </head>
   <body class="bg-gray-100 min-h-screen flex">
@@ -35,6 +37,13 @@
           >
             Add
           </button>
+          <!-- New Barcode Scan Button -->
+          <button
+            id="scan-barcode-btn"
+            class="bg-purple-600 text-white px-3 py-1 rounded hover:bg-purple-800"
+          >
+            Scan Barcode
+          </button>
 
           <!-- CSV Import Section -->
           <div class="flex items-center">
@@ -58,11 +67,26 @@
           </button>
         </div>
 
+        <!-- Barcode Scanner Section (Hidden by default) -->
+        <div id="barcode-scanner" class="mb-4 hidden">
+          <video id="barcode-video" class="w-full max-w-md mx-auto"></video>
+          <button
+            id="close-scanner-btn"
+            class="bg-red-600 text-white px-3 py-1 rounded mt-2"
+          >
+            Close Scanner
+          </button>
+        </div>
+
         <!-- Student Details Section (Initially Hidden) -->
         <div id="student-info" class="mt-4 hidden">
           <h2 class="text-xl font-semibold mb-2">Student Details</h2>
-          <p><strong>ID:</strong> <span id="display-student-id"></span></p>
-          <p><strong>Name:</strong> <span id="display-student-name"></span></p>
+          <p>
+            <strong>ID:</strong> <span id="display-student-id"></span>
+          </p>
+          <p>
+            <strong>Name:</strong> <span id="display-student-name"></span>
+          </p>
           <p>
             <strong>Course:</strong> <span id="display-student-course"></span>
           </p>

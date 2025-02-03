@@ -20,13 +20,26 @@
       <div class="bg-white shadow-md rounded-lg p-6">
         <h1 class="text-2xl font-semibold mb-6">Attendance Records</h1>
 
+        <!-- Search Controls -->
         <div class="flex items-center space-x-4 mb-4">
+          <!-- Select search type: by ID or by Name -->
+          <select
+            id="search-type"
+            class="border rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="id">Student ID</option>
+            <option value="name">Student Name</option>
+          </select>
+
+          <!-- Input field for search term -->
           <input
             type="text"
             id="search-input"
             placeholder="Enter Student ID"
             class="border rounded-lg p-2 w-1/2 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
+
+          <!-- Search button -->
           <button
             id="search-btn"
             class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-800"
@@ -55,6 +68,22 @@
         </div>
       </div>
     </div>
+
+    <!-- Inline script to update the search input placeholder -->
+    <script>
+      const searchTypeEl = document.getElementById('search-type');
+      const searchInputEl = document.getElementById('search-input');
+
+      searchTypeEl.addEventListener('change', () => {
+        if (searchTypeEl.value === 'name') {
+          searchInputEl.placeholder = 'Enter Student Name';
+        } else {
+          searchInputEl.placeholder = 'Enter Student ID';
+        }
+      });
+    </script>
+
+    <!-- External script that handles search functionality -->
     <script src="/script.js" defer></script>
   </body>
 </html>

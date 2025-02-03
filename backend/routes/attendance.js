@@ -141,4 +141,44 @@ router.get("/student/:student_id", async (req, res) => {
   }
 });
 
+router.get('/student/name/:student_name', async (req, res) => {
+  const { student_name } = req.params;
+  const { department_id } = req.query;
+
+  if (!department_id) {
+    return res.status(400).json({ message: "Missing department_id in query parameters" });
+  }
+
+  try {
+    // Use wildcard for partial matching
+    const searchName = `%${student_name}%`;
+    const query = `
+      SELECT 
+        student_list.student_id,
+        student_list.name AS student_name,
+        student_list.course,
+        student_list.year_level,
+        events.name AS event_name,
+        events.date AS event_date
+      FROM attendance
+      JOIN student_list ON attendance.student_id = student_list.student_id
+      JOIN events ON attendance.event_id = events.id
+      WHERE student_list.name LIKE ? AND events.department_id = ?
+      ORDER BY events.date;
+    `;
+
+    const [rows] = await db.query(query, [searchName, department_id]);
+
+    if (rows.length === 0) {
+      return res.status(404).json({ message: "No events found for this student in your department." });
+    }
+
+    res.status(200).json(rows);
+  } catch (error) {
+    console.error("Error fetching events for student by name:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+
 module.exports = router;
