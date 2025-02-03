@@ -174,11 +174,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
         lastScannedCode = code;
         lastScanTime = currentTime;
+
     }
+
     // Optionally, you can validate or transform the barcode here.
     // For instance, if your student IDs are in one of the allowed formats,
     // you can automatically populate the student-id input.
-    document.getElementById('student-id').value = code;
     
     // Stop the scanner and hide the scanner section.
     Quagga.stop();
