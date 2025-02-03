@@ -147,6 +147,7 @@ document.addEventListener('DOMContentLoaded', function() {
           alert("Error starting barcode scanner: " + err);
           return;
         }
+        console.log("START DAPAT")
         Quagga.start();
       });
     });
@@ -164,8 +165,16 @@ document.addEventListener('DOMContentLoaded', function() {
   Quagga.onDetected(function(result) {
     // Retrieve the detected barcode.
     const code = result.codeResult.code;
-    console.log("Barcode detected:", code);
-    
+    const currentTime = Date.now();
+
+
+    if (code !== lastScannedCode || (currentTime - lastScanTime) > debounceTime) {
+        console.log("Barcode detected:", code);
+        document.getElementById('student-id').value = code;
+
+        lastScannedCode = code;
+        lastScanTime = currentTime;
+    }
     // Optionally, you can validate or transform the barcode here.
     // For instance, if your student IDs are in one of the allowed formats,
     // you can automatically populate the student-id input.

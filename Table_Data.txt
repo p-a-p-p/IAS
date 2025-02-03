@@ -2,7 +2,7 @@
 INSERT INTO departments (name) VALUES ('CSG'), ('CABE'), ('CCIS'), ('CEDAS'), ('COE'), ('CHS');
 
 -- Insert Admin
-INSERT INTO admin (email, password) VALUES ('admin@admin.com', '$10$3LXO17C/yaZvNA887d8bTue.bFwGcZBzF9DmmZrKzsOx5J.fH7gg2
+INSERT INTO admin (email, password) VALUES ('admin@admin.com', '$2a$10$uVmfgvHI9eQkiWIYMakR8u0O.eurCm0eFDj.HUrt.S/kNv8r3dMsW
 ');
 
 
