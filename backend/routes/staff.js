@@ -50,20 +50,18 @@ router.get("/events", async (req, res) => {
 
 // Create a new event
 router.post("/events", async (req, res) => {
-  const { name, date, created_by, department_id } = req.body;
-
+  const { name, date, deadline, created_by, department_id } = req.body;
+  
   try {
-    console.log("Inserting Event:", { name, date, created_by, department_id });
-
-    const result = await db.query(
-      "INSERT INTO events (name, date, created_by, department_id) VALUES (?, ?, ?, ?)",
-      [name, date, created_by, department_id]
+    // If your table has 'deadline DATETIME'
+    await db.query(
+      "INSERT INTO events (name, date, deadline, created_by, department_id) VALUES (?, ?, ?, ?, ?)",
+      [name, date, deadline, created_by, department_id]
     );
 
-    console.log("Event created:", result);
     res.status(201).json({ message: "Event created successfully" });
   } catch (error) {
-    console.error("SQL Error:", error.sqlMessage); // Log SQL-specific error
+    console.error("SQL Error:", error.sqlMessage);
     res.status(500).json({ message: "Server error", error: error.sqlMessage });
   }
 });

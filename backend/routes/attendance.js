@@ -2,40 +2,136 @@ const express = require("express");
 const router = express.Router();
 const db = require("../config/db");
 
+// Helper function to format datetime strings
+function formatDatetime(input) {
+  // Converts an input like "2/7/2025 12:28" to "2025-02-07 12:28:00"
+  if (!input) return input;
+  const [datePart, timePart] = input.split(" ");
+  if (!datePart || !timePart) return input;
+  const parts = datePart.split("/");
+  if (parts.length !== 3) return input;
+  let [month, day, year] = parts;
+  // Pad month and day with leading zeros if needed
+  if (month.length < 2) month = "0" + month;
+  if (day.length < 2) day = "0" + day;
+  let formattedTime = timePart;
+  // If no seconds are provided, append ":00"
+  if (timePart.split(":").length === 2) {
+    formattedTime += ":00";
+  }
+  return `${year}-${month}-${day} ${formattedTime}`;
+}
+
 router.post("/", async (req, res) => {
-  const { student_id, event_id, student_ids } = req.body;
+  // De-structure the necessary fields
+  const { event_id, records, student_id } = req.body; 
 
   try {
-    // Validate input: Ensure event_id is provided
+    // 1. Validate event_id
     if (!event_id) {
       return res.status(400).json({ message: "Event ID is required." });
     }
 
-    // Handle Bulk Insertion from CSV or Excel
-    if (student_ids && Array.isArray(student_ids) && student_ids.length > 0) {
-      console.log("Bulk insert for event:", event_id, "Students:", student_ids);
+    // 2. Retrieve the event's deadline
+    const [[eventRow]] = await db.query(
+      "SELECT deadline FROM events WHERE id = ?",
+      [event_id]
+    );
+    if (!eventRow) {
+      return res.status(400).json({ message: "Event not found." });
+    }
 
-      const insertPromises = student_ids.map((id) =>
-        db.query(
-          "INSERT INTO attendance (student_id, event_id) VALUES (?, ?)",
-          [id, event_id]
-        )
+    // Get the event's deadline and the current time
+    const deadline = new Date(eventRow.deadline);
+    const now = new Date();
+
+    // For single student insertion, check if the current time exceeds the deadline.
+    // (For bulk uploads, we check each record individually below.)
+    if ((!records || records.length === 0) && now > deadline) {
+      return res
+        .status(400)
+        .json({ message: "Deadline passed. Attendance not allowed." });
+    }
+
+    // 4. Handle Bulk Insertion from CSV or Excel
+    if (records && Array.isArray(records) && records.length > 0) {
+      console.log("Bulk insert for event:", event_id, "Records:", records);
+
+      // Filter records based on attendance_time relative to the event deadline.
+      // Convert each record's attendance_time to a valid datetime before comparing.
+      const validRecords = records.filter(({ attendance_time }) => {
+        const recordTime = new Date(formatDatetime(attendance_time));
+        return recordTime <= deadline;
+      });
+
+      if (validRecords.length === 0) {
+        return res
+          .status(400)
+          .json({ message: "No records have attendance time within the deadline." });
+      }
+
+      // Get unique student IDs from validRecords
+      const studentIdsBulk = validRecords.map(r => r.student_id);
+      const uniqueStudentIdsBulk = [...new Set(studentIdsBulk)];
+
+      // Query existing attendance records for this event among those student IDs.
+      const [existingRows] = await db.query(
+        "SELECT student_id FROM attendance WHERE event_id = ? AND student_id IN (?)",
+        [event_id, uniqueStudentIdsBulk]
       );
 
-      await Promise.all(insertPromises); // Execute all insertions concurrently
+      // Create a Set of existing student_ids.
+      const existingStudentIds = new Set(existingRows.map(row => row.student_id));
 
+      // Filter out duplicates:
+      // - Skip records where the student_id already exists in the database.
+      // - Also, skip duplicate entries within the bulk upload (keep only one record per student).
+      const seen = new Set();
+      const newRecords = [];
+      for (const record of validRecords) {
+        if (existingStudentIds.has(record.student_id)) continue;
+        if (seen.has(record.student_id)) continue;
+        seen.add(record.student_id);
+        newRecords.push(record);
+      }
+
+      // Insert only the new (non-duplicate) records.
+      if (newRecords.length > 0) {
+        const insertPromises = newRecords.map(({ student_id, attendance_time }) =>
+          db.query(
+            "INSERT INTO attendance (student_id, event_id, attended_on) VALUES (?, ?, ?)",
+            [student_id, event_id, formatDatetime(attendance_time)]
+          )
+        );
+        await Promise.all(insertPromises);
+      }
+
+      // Return a success message without any duplicate messages.
       return res
         .status(201)
         .json({ message: "Bulk attendance records added successfully." });
     }
 
-    // Handle Single Student Insertion
+    // 5. Handle Single Student Insertion
+    // (Check for duplicates and do not add if duplicate exists)
     if (student_id) {
       console.log("Single insert for student:", student_id, "Event:", event_id);
 
-      const query = `INSERT INTO attendance (student_id, event_id) VALUES (?, ?)`;
-      await db.query(query, [student_id, event_id]);
+      // Check if an attendance record already exists for this student and event.
+      const [existing] = await db.query(
+        "SELECT * FROM attendance WHERE student_id = ? AND event_id = ?",
+        [student_id, event_id]
+      );
+      if (existing.length > 0) {
+        return res.status(400).json({ message: "Student already marked for this event." });
+      }
 
+      await db.query(
+        "INSERT INTO attendance (student_id, event_id, attended_on) VALUES (?, ?, NOW())",
+        [student_id, event_id]
+      );
+
+      // Optionally fetch student details from 'student_list'
       const [student] = await db.query(
         "SELECT student_id, name, course, year_level FROM student_list WHERE student_id = ?",
         [student_id]
@@ -51,24 +147,26 @@ router.post("/", async (req, res) => {
       return res.status(201).json(studentData);
     }
 
-    // If neither student_ids nor student_id are provided
+    // If neither records nor student_id are provided
     return res.status(400).json({ message: "Invalid request data." });
   } catch (error) {
     console.error("Error recording attendance:", error);
 
-    // Handle duplicate entries
-    if (error.code === "ER_DUP_ENTRY") {
+    // For single insertions, send a duplicate error message if applicable.
+    if (!records && error.code === "ER_DUP_ENTRY") {
       return res
         .status(400)
-        .json({ message: "Some students are already marked for this event." });
+        .json({ message: "Student already marked for this event." });
     }
 
-    // Handle other server errors
+    // For bulk insertion, duplicates are filtered out so no duplicate message is sent.
     return res
       .status(500)
       .json({ message: "Server error.", error: error.message });
   }
 });
+
+
 
 // GET: Fetch all student details for a specific event
 router.get("/:event_id", async (req, res) => {
@@ -97,7 +195,7 @@ router.get("/:event_id", async (req, res) => {
   }
 });
 
-// Backend Route: routes/attendance.js or similar
+//search by student id
 router.get("/student/:student_id", async (req, res) => {
   const { student_id } = req.params;
   const { department_id } = req.query; // Get department_id from query parameters
@@ -141,6 +239,7 @@ router.get("/student/:student_id", async (req, res) => {
   }
 });
 
+//search by student name
 router.get('/student/name/:student_name', async (req, res) => {
   const { student_name } = req.params;
   const { department_id } = req.query;

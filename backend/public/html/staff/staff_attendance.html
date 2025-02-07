@@ -3,83 +3,96 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>User - Attendance</title>
+    <title>Staff - Attendance Records</title>
     <script src="https://cdn.tailwindcss.com"></script>
   </head>
   <body class="bg-gray-100 min-h-screen flex">
     <!-- Sidebar -->
-    <div
+    <aside
       id="sidebar"
-      class="w-48 bg-blue-900 text-white flex flex-col justify-between"
+      class="w-64 bg-blue-900 text-white p-4 flex flex-col justify-between"
     >
-      <!-- Sidebar will be rendered here -->
-    </div>
+      <!-- Sidebar content will be rendered here by script.js -->
+    </aside>
 
     <!-- Main Content -->
-    <div class="flex-1 p-10">
-      <div class="bg-white shadow-md rounded-lg p-6">
-        <h1 class="text-2xl font-semibold mb-6">Attendance Records</h1>
+    <main class="flex-1 p-10">
+      <div class="bg-white shadow-lg rounded-lg p-8">
+        <header>
+          <h1 class="text-3xl font-bold mb-2">Attendance Records</h1>
+          <p class="text-gray-600 mb-4">
+            Review and manage attendance records for your events.
+          </p>
+        </header>
 
         <!-- Search Controls -->
-        <div class="flex items-center space-x-4 mb-4">
-          <!-- Select search type: by ID or by Name -->
-          <select
-            id="search-type"
-            class="border rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="id">Student ID</option>
-            <option value="name">Student Name</option>
-          </select>
+        <section class="mb-6">
+          <div class="flex flex-wrap items-center space-x-4">
+            <!-- Accessible label using sr-only -->
+            <label for="search-type" class="sr-only">Search Type</label>
+            <select
+              id="search-type"
+              class="border rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="id">Student ID</option>
+              <option value="name">Student Name</option>
+            </select>
 
-          <!-- Input field for search term -->
-          <input
-            type="text"
-            id="search-input"
-            placeholder="Enter Student ID"
-            class="border rounded-lg p-2 w-1/2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
+            <label for="search-input" class="sr-only">Search Input</label>
+            <input
+              type="text"
+              id="search-input"
+              placeholder="Enter Student ID"
+              class="border rounded-lg p-2 w-full md:w-1/2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
 
-          <!-- Search button -->
-          <button
-            id="search-btn"
-            class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-800"
-          >
-            Search
-          </button>
-        </div>
+            <button
+              id="search-btn"
+              class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-800"
+            >
+              Search
+            </button>
+          </div>
+        </section>
 
         <!-- Attendance Table -->
-        <div class="overflow-y-auto max-h-96 mt-6">
-          <table id="attendance-table" class="w-full border table-fixed">
-            <thead class="bg-gray-200">
-              <tr>
-                <th class="border px-4 py-2">Student ID</th>
-                <th class="border px-4 py-2">Name</th>
-                <th class="border px-4 py-2">Course</th>
-                <th class="border px-4 py-2">Year Level</th>
-                <th class="border px-4 py-2">Event Name</th>
-                <th class="border px-4 py-2">Event Date</th>
-              </tr>
-            </thead>
-            <tbody id="attendance-body">
-              <!-- Dynamic Attendance Records will be rendered here -->
-            </tbody>
-          </table>
-        </div>
+        <section>
+          <div class="overflow-x-auto">
+            <table
+              id="attendance-table"
+              class="min-w-full border divide-y divide-gray-200"
+            >
+              <thead class="bg-gray-200">
+                <tr>
+                  <th class="px-4 py-2 text-left">Student ID</th>
+                  <th class="px-4 py-2 text-left">Name</th>
+                  <th class="px-4 py-2 text-left">Course</th>
+                  <th class="px-4 py-2 text-left">Year Level</th>
+                  <th class="px-4 py-2 text-left">Event Name</th>
+                  <th class="px-4 py-2 text-left">Event Date</th>
+                </tr>
+              </thead>
+              <tbody
+                id="attendance-body"
+                class="bg-white divide-y divide-gray-200"
+              >
+                <!-- Dynamic Attendance Records will be rendered here -->
+              </tbody>
+            </table>
+          </div>
+        </section>
       </div>
-    </div>
+    </main>
 
     <!-- Inline script to update the search input placeholder -->
     <script>
-      const searchTypeEl = document.getElementById('search-type');
-      const searchInputEl = document.getElementById('search-input');
-
-      searchTypeEl.addEventListener('change', () => {
-        if (searchTypeEl.value === 'name') {
-          searchInputEl.placeholder = 'Enter Student Name';
-        } else {
-          searchInputEl.placeholder = 'Enter Student ID';
-        }
+      const searchTypeEl = document.getElementById("search-type");
+      const searchInputEl = document.getElementById("search-input");
+      searchTypeEl.addEventListener("change", () => {
+        searchInputEl.placeholder =
+          searchTypeEl.value === "name"
+            ? "Enter Student Name"
+            : "Enter Student ID";
       });
     </script>
 

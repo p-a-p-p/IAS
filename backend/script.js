@@ -14,6 +14,49 @@ function getEventIdFromUrl() {
   return getQueryParam("event_id");
 }
 
+/**
+ * Convert a date string from a format like "30/Sep/2024 12:40" 
+ * to MySQL datetime format "YYYY-MM-DD HH:mm:ss".
+ */
+function convertToMySQLDatetime(dateStr) {
+  // Remove any extra quotes and whitespace
+  dateStr = dateStr.replace(/['"]+/g, "").trim();
+
+  // Split into date and time parts. Expected format: "30/Sep/2024 12:40"
+  const parts = dateStr.split(" ");
+  if (parts.length !== 2) return dateStr; // fallback if unexpected format
+
+  const [datePart, timePart] = parts;
+  const dateParts = datePart.split("/");
+  if (dateParts.length !== 3) return dateStr; // fallback if unexpected format
+
+  const [day, monthAbbr, year] = dateParts;
+  // Map month abbreviations to numbers
+  const monthMap = {
+    Jan: "01",
+    Feb: "02",
+    Mar: "03",
+    Apr: "04",
+    May: "05",
+    Jun: "06",
+    Jul: "07",
+    Aug: "08",
+    Sep: "09",
+    Oct: "10",
+    Nov: "11",
+    Dec: "12",
+  };
+  const month = monthMap[monthAbbr];
+  if (!month) return dateStr; // fallback if month abbreviation unrecognized
+
+  // If the time is in "HH:mm" format, append seconds as ":00"
+  let formattedTime = timePart;
+  if (formattedTime.length === 5) {
+    formattedTime += ":00";
+  }
+  return `${year}-${month}-${day} ${formattedTime}`;
+}
+
 // Render Sidebar Based on Role
 function renderSidebar() {
   const role = sessionStorage.getItem("role");
@@ -99,6 +142,24 @@ function renderSidebar() {
   }
 }
 
+function fetchEventDetails(eventId) {
+  fetch(`/events/${eventId}`)
+    .then(response => response.json())
+    .then(data => {
+      if (data && data.name) {
+        const eventNameElem = document.getElementById("display-event-name");
+        if (eventNameElem) {
+          eventNameElem.textContent = data.name;
+        }
+      } else {
+        console.error("Event details not found or missing 'name' property.");
+      }
+    })
+    .catch(err => {
+      console.error("Error fetching event details:", err);
+    });
+}
+
 // Logout Function
 function logout() {
   sessionStorage.clear();
@@ -116,6 +177,11 @@ document.addEventListener("DOMContentLoaded", () => {
   renderSidebar();
   initializePageBasedOnPath();
 });
+
+let lastScannedCode = "";    // Keep track of the last scanned value
+let lastScanTime = 0;        // Track the time (in ms) of the last scan
+const debounceTime = 3000;   // Wait 3s (adjust as needed) before allowing another scan
+
 document.addEventListener('DOMContentLoaded', function() {
   const scanBtn = document.getElementById('scan-barcode-btn');
   const closeScannerBtn = document.getElementById('close-scanner-btn');
@@ -134,20 +200,26 @@ document.addEventListener('DOMContentLoaded', function() {
           type: "LiveStream",
           target: document.querySelector('#barcode-video'),
           constraints: {
-            facingMode: "environment" // Use the back camera if available.
+            facingMode: "environment",
+            width: 640,
+            height: 480
           }
         },
+        locator: {
+          patchSize: "medium",
+          halfSample: true
+        },
         decoder: {
-          // Adjust the list of readers based on the barcode types you expect.
           readers: ["code_128_reader", "ean_reader", "ean_8_reader"]
-        }
+        },
+        locate: true
       }, function(err) {
         if (err) {
           console.error("Quagga initialization error:", err);
           alert("Error starting barcode scanner: " + err);
           return;
         }
-        console.log("START DAPAT")
+        console.log("Quagga started successfully.");
         Quagga.start();
       });
     });
@@ -167,20 +239,14 @@ document.addEventListener('DOMContentLoaded', function() {
     const code = result.codeResult.code;
     const currentTime = Date.now();
 
-
     if (code !== lastScannedCode || (currentTime - lastScanTime) > debounceTime) {
         console.log("Barcode detected:", code);
         document.getElementById('student-id').value = code;
 
         lastScannedCode = code;
         lastScanTime = currentTime;
-
     }
 
-    // Optionally, you can validate or transform the barcode here.
-    // For instance, if your student IDs are in one of the allowed formats,
-    // you can automatically populate the student-id input.
-    
     // Stop the scanner and hide the scanner section.
     Quagga.stop();
     scannerContainer.classList.add('hidden');
@@ -310,11 +376,12 @@ function setupEventCreation() {
   createEventBtn.addEventListener("click", async () => {
     const name = document.getElementById("event-name").value.trim();
     const date = document.getElementById("event-date").value;
+    const time = document.getElementById("event-time").value;
     const createdBy = sessionStorage.getItem("staffId");
     const departmentId = sessionStorage.getItem("departmentId");
 
-    if (!name || !date) {
-      alert("Please fill out all fields.");
+    if (!name || !date || !time) {
+      alert("Please fill out all fields (name, date, and time).");
       return;
     }
 
@@ -324,6 +391,8 @@ function setupEventCreation() {
       return;
     }
 
+    const deadline = `${date} ${time}:00`; 
+    
     try {
       const response = await fetch("/staff/events", {
         method: "POST",
@@ -331,6 +400,7 @@ function setupEventCreation() {
         body: JSON.stringify({
           name,
           date,
+          deadline,
           created_by: createdBy,
           department_id: departmentId,
         }),
@@ -379,6 +449,7 @@ function setupAttendancePage() {
     console.warn("Search button or input not found on this page.");
   }
 }
+
 // Setup Student Input Handling
 function setupStudentInput(eventId) {
   const addStudentBtn = document.getElementById("add-student-btn");
@@ -566,18 +637,15 @@ async function addStudentToAttendance(studentId, eventId) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ student_id: studentId, event_id: eventId }),
     });
-
-    const data = await response.json();
-
-    if (response.ok) {
-      return data;
-    } else {
-      alert(`Failed to add student: ${data.message}`);
+    if (!response.ok) {
+      const data = await response.json();
+      alert(data.message || "Attendance error.");
       return null;
     }
-  } catch (error) {
-    console.error("Error adding student:", error);
-    alert("An error occurred. Please try again.");
+    return await response.json(); // student data
+  } catch (err) {
+    console.error("Error adding student to attendance:", err);
+    alert("Server or network error.");
     return null;
   }
 }
@@ -604,8 +672,14 @@ async function fetchAndDisplayStudentIds(eventId) {
   }
 }
 
-// Send Data to Server (For CSV/Excel Upload)
-function sendDataToServer(studentIds) {
+/**
+ * Send Data to Server (For CSV/Excel Upload)
+ * 
+ * Now converts each record's attendance_time to a MySQL datetime
+ * format before sending.
+ */
+function sendDataToServer(records) {
+  // Extract event ID from URL or wherever you store it
   const eventID = getQueryParam("event_id");
 
   if (!eventID) {
@@ -614,9 +688,17 @@ function sendDataToServer(studentIds) {
     return;
   }
 
+  // Build the payload to match your new backend expectations.
+  // For each record, remove extra quotes from student_id and convert
+  // attendance_time to MySQL datetime format if available.
   const payload = {
     event_id: eventID,
-    student_ids: studentIds.map((id) => id.replace(/['"]+/g, "")),
+    records: records.map((item) => ({
+      student_id: item.student_id.replace(/['"]+/g, ""),
+      attendance_time: item.attendance_time
+        ? convertToMySQLDatetime(item.attendance_time)
+        : null,
+    })),
   };
 
   console.log("Sending Payload:", payload);
@@ -632,7 +714,7 @@ function sendDataToServer(studentIds) {
       const data = await response.json();
       if (response.ok) {
         console.log("Data imported successfully:", data);
-        alert(data.message);
+        alert(data.message || "Bulk attendance records added successfully.");
         location.reload();
       } else {
         console.error("Backend responded with an error:", data);
@@ -806,9 +888,7 @@ function renderUserData(users) {
 // Utility Function to Group Data by Department
 function groupByDepartment(data) {
   return data.reduce((result, item) => {
-    (result[item.department_name] = result[item.department_name] || []).push(
-      item
-    );
+    (result[item.department_name] = result[item.department_name] || []).push(item);
     return result;
   }, {});
 }
@@ -1285,6 +1365,7 @@ function displayNoStudentsMessage() {
 
 // Event Listener for Reading Excel/CSV Files
 const readExcelButton = document.getElementById("read-excel");
+
 if (readExcelButton) {
   readExcelButton.addEventListener("click", function () {
     const fileInput = document.getElementById("excel-file");
@@ -1306,23 +1387,35 @@ if (readExcelButton) {
         const sheetName = workbook.SheetNames[0];
         const sheet = workbook.Sheets[sheetName];
 
-        const studentIds = [];
+        // Build array of { student_id, attendance_time }
+        const records = [];
         const range = XLSX.utils.decode_range(sheet["!ref"]);
 
+        // Example: start from row 3 (row index 3 for 0-based index)
         for (let rowNum = 3; rowNum <= range.e.r; rowNum++) {
-          // Start from B4
-          const cellAddress = XLSX.utils.encode_cell({ r: rowNum, c: 1 }); // Column B
-          const cell = sheet[cellAddress];
-          const cellValue = cell ? cell.v : undefined;
-          if (cellValue !== undefined) {
-            studentIds.push(cellValue.trim());
+          // Column B -> student_id
+          const studentIdCellAddr = XLSX.utils.encode_cell({ r: rowNum, c: 1 }); // B
+          const studentIdCell = sheet[studentIdCellAddr];
+          const studentIdVal = studentIdCell ? studentIdCell.v : undefined;
+
+          // Column D -> attendance_time
+          const timeCellAddr = XLSX.utils.encode_cell({ r: rowNum, c: 3 }); // D
+          const timeCell = sheet[timeCellAddr];
+          const timeVal = timeCell ? timeCell.v : undefined;
+
+          if (studentIdVal !== undefined) {
+            records.push({
+              student_id: studentIdVal.toString().trim(),
+              attendance_time: timeVal ? timeVal.toString().trim() : null,
+            });
           }
         }
 
-        console.log("Extracted Student IDs (Excel):", studentIds);
-        sendDataToServer(studentIds);
+        console.log("Extracted Records (Excel):", records);
+        sendDataToServer(records);
       };
       reader.readAsArrayBuffer(file);
+
     } else if (fileExtension === "csv") {
       // Handle CSV file
       const reader = new FileReader();
@@ -1330,24 +1423,29 @@ if (readExcelButton) {
         const csvData = event.target.result;
         const rows = csvData.split("\n");
 
-        const studentIds = [];
+        const records = [];
+        // Start from row 3 (i.e. the 4th row in your CSV)
         for (let i = 3; i < rows.length; i++) {
-          // Start from B4
           const columns = rows[i].split(",");
-          const cellValue = columns[1]; // Extract from second column (B)
-          if (cellValue) {
-            studentIds.push(cellValue.trim());
+          // columns[1] => student_id (col B), columns[3] => attendance_time (col D)
+          const studentIdVal = columns[1] ? columns[1].trim() : null;
+          const timeVal = columns[3] ? columns[3].trim() : null;
+
+          if (studentIdVal) {
+            records.push({
+              student_id: studentIdVal,
+              attendance_time: timeVal || null,
+            });
           }
         }
 
-        console.log("Extracted Student IDs (CSV):", studentIds);
-        sendDataToServer(studentIds);
+        console.log("Extracted Records (CSV):", records);
+        sendDataToServer(records);
       };
       reader.readAsText(file);
+
     } else {
-      console.error(
-        "Unsupported file format. Please upload an Excel or CSV file."
-      );
+      console.error("Unsupported file format. Please upload an Excel or CSV file.");
     }
   });
 }

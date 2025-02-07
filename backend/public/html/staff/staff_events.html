@@ -2,58 +2,86 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>Manage Events</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Manage Events - Staff</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="/script.js" defer></script>
   </head>
   <body class="bg-gray-100 min-h-screen flex">
     <!-- Sidebar -->
-    <div
+    <aside
       id="sidebar"
-      class="w-64 bg-blue-900 text-white flex flex-col justify-between"
+      class="w-64 bg-blue-900 text-white p-4 flex flex-col justify-between"
     >
-      <!-- Sidebar will be rendered here -->
-    </div>
+      <!-- Sidebar content will be rendered here by script.js -->
+    </aside>
 
     <!-- Main Content -->
-    <div class="flex-1 p-8">
-      <h1 class="text-3xl font-semibold mb-6 text-gray-800">Manage Events</h1>
-
-      <div class="flex items-center mb-4 space-x-4">
-        <input
-          type="text"
-          id="event-name"
-          placeholder="Event Name"
-          class="border rounded-lg p-2 w-1/3 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-        <input
-          type="date"
-          id="event-date"
-          class="border rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-        <button
-          id="create-event-btn"
-          class="bg-green-600 hover:bg-green-800 text-white font-semibold px-4 py-2 rounded-lg"
-        >
-          Create Event
-        </button>
-      </div>
-
-      <div class="bg-white shadow-md rounded-lg p-6">
-        <table id="events-table" class="w-full border">
-          <thead class="bg-gray-200">
-            <tr>
-              <th class="border px-4 py-2">Event ID</th>
-              <th class="border px-4 py-2">Event Name</th>
-              <th class="border px-4 py-2">Date</th>
-              <th class="border px-4 py-2">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <!-- Event rows will be inserted here by JavaScript -->
-          </tbody>
-        </table>
-      </div>
-    </div>
+    <main class="flex-1 p-8">
+      <header>
+        <h1 class="text-3xl font-bold text-gray-800 mb-6">Manage Events</h1>
+      </header>
+      
+      <!-- Event Creation Form -->
+      <section class="mb-8">
+        <div class="flex flex-wrap items-center space-x-4">
+          <div class="w-full md:w-1/3">
+            <label for="event-name" class="sr-only">Event Name</label>
+            <input
+              type="text"
+              id="event-name"
+              placeholder="Event Name"
+              class="w-full border rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          <div class="w-full md:w-1/4">
+            <label for="event-date" class="sr-only">Event Date</label>
+            <input
+              type="date"
+              id="event-date"
+              class="w-full border rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          <div class="w-full md:w-1/4">
+            <label for="event-time" class="sr-only">Event Time</label>
+            <input
+              type="time"
+              id="event-time"
+              class="w-full border rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          <div class="w-full md:w-auto">
+            <button
+              id="create-event-btn"
+              class="bg-green-600 hover:bg-green-800 text-white font-semibold px-4 py-2 rounded-lg"
+            >
+              Create Event
+            </button>
+          </div>
+        </div>
+      </section>
+      
+      <!-- Events Table -->
+      <section>
+        <div class="bg-white shadow-lg rounded-lg p-6 overflow-x-auto">
+          <table
+            id="events-table"
+            class="min-w-full border divide-y divide-gray-200"
+          >
+            <thead class="bg-gray-200">
+              <tr>
+                <th class="px-4 py-2 text-left">Event ID</th>
+                <th class="px-4 py-2 text-left">Event Name</th>
+                <th class="px-4 py-2 text-left">Date</th>
+                <th class="px-4 py-2 text-left">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+              <!-- Event rows will be inserted here by JavaScript -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
   </body>
 </html>
